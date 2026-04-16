@@ -1,0 +1,1579 @@
+{
+  "name": "Quiz",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -16,
+        0
+      ],
+      "id": "d62b6f72-1296-4b37-af53-c7ae758b57a8",
+      "name": "Telegram Trigger",
+      "webhookId": "b94c0217-de88-4f68-aa3c-9c22ab5828f3",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Halo!\n\nSelamat datang di AI Quiz Generator untuk pengetahuan industri properti\n\nCara menggunakan:\n\n1. Kirim topik apa saja terkait properti\n   (contoh: Property market Jakarta 2025 atau Skills of a property agent)\n2. Sistem akan otomatis membuat quiz untuk kamu\n3. Jawab setiap pertanyaan dengan memilih opsi (A/B/C/D)\n4. Dapatkan skor dan penjelasan di akhir\n\nFitur:\n- Soal dibuat otomatis oleh AI\n- Terdapat tingkat kesulitan (easy/medium/hard)\n- Dilengkapi dengan penjelasan jawaban\n\nKetik topik yang ingin kamu pelajari sekarang ya!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        928,
+        352
+      ],
+      "id": "67b848f7-2159-4190-b596-a1f8c054f97e",
+      "name": "Send a text message",
+      "webhookId": "91784d90-865a-4040-a1cf-2ac81612af08",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "name",
+              "condition": "LIKE",
+              "value": "={{ $json.message.from.first_name }} {{ $json.message.from.last_name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        192,
+        0
+      ],
+      "id": "235cfda3-6f95-4ab2-80d5-87e22ebdfa7f",
+      "name": "Select rows from a table",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "=WAITING_TOPIC",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "d1d42a85-4b32-49f1-8570-cdee217b9f06"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "bfb2dc86-a3e7-4cdf-b9a5-ea536e80591c",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "QUIZ_RUNNING",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d85a91e2-949b-4849-8c6b-a72482bf172d",
+                    "leftValue": "={{ $json.state }}",
+                    "rightValue": "QUIZ_FINISHED",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "03d9dfac-3694-4de9-b419-2daa714b4664",
+                    "leftValue": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "number",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "e7cfde5f-7ecc-4df1-98d4-217950369ded",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "chat_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+            },
+            {
+              "column": "name",
+              "value": "={{ $('Telegram Trigger').item.json.message.from.first_name }} {{ $('Telegram Trigger').item.json.message.chat.last_name }}"
+            },
+            {
+              "column": "state",
+              "value": "WAITING_TOPIC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        704,
+        352
+      ],
+      "id": "d7f1f4e4-e33f-4ea3-96f5-ffd367dbc555",
+      "name": "Insert rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Tema:  {{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are an AI assistant specialized in generating professional quizzes for employees in the property industry.\n\nYour task is to generate a structured quiz based on a given topic. The quiz must be relevant to real-world property knowledge, especially in Southeast Asia or Indonesia when applicable.\n\nRequirements:\n- Generate 5 multiple-choice questions\n- Each question must have exactly 4 answer options (A, B, C, D)\n- Clearly indicate the correct answer\n- Provide a short explanation for each answer\n- Assign a difficulty level (easy, medium, hard) for each question\n- Ensure questions are practical, realistic, and useful for property professionals (e.g., agents, analysts, marketers)\n\nOutput format (STRICT JSON):\n{\n  \"topic\": \"string\",\n  \"questions\": [\n    {\n      \"question\": \"string\",\n      \"options\": {\n        \"A\": \"string\",\n        \"B\": \"string\",\n        \"C\": \"string\",\n        \"D\": \"string\"\n      },\n      \"answer\": \"A/B/C/D\",\n      \"explanation\": \"string\",\n      \"difficulty\": \"easy/medium/hard\"\n    }\n  ]\n}\n\nRules:\n- Do not include any text outside the JSON\n- Do not use markdown formatting\n- Make sure the JSON is valid and parsable\n- Avoid generic or vague questions\n- Prefer contextual and scenario-based questions when possible\n\nIf the topic is unclear, assume it is related to property business, real estate trends, or agent skills."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -32
+      ],
+      "id": "e415bfc4-f8fb-40fb-9c5c-11cb67e8ad8a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        960,
+        176
+      ],
+      "id": "7d7797fe-ed4a-4552-8711-78961f7d3e97",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Z7RRwWJdesgLiWAu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "quizzes",
+          "mode": "list",
+          "cachedResultName": "quizzes"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "topic",
+              "value": "={{ $json.topic }}"
+            },
+            {
+              "column": "quiz_data",
+              "value": "={{ $json.quiz_data }}"
+            }
+          ]
+        },
+        "options": {
+          "detailedOutput": true
+        }
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1488,
+        -32
+      ],
+      "id": "a8da381c-b0c0-486b-bbfe-121e155d273a",
+      "name": "Insert rows in a table1",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Select rows from a table').item.json.id }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "state",
+              "value": "QUIZ_RUNNING"
+            },
+            {
+              "column": "current_quiz_id",
+              "value": "={{ $json.data.insertId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1696,
+        -32
+      ],
+      "id": "76dbd9f0-837b-4399-8f6a-ba88ed19c8c1",
+      "name": "Insert or update rows in a table",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('AI Agent').all();\n\nfor (const item of items) {\n  const raw = item.json.output;\n\n  const cleaned = raw\n    .replace(/```json/g, '')\n    .replace(/```/g, '')\n    .trim();\n\n  const parsed = JSON.parse(cleaned);\n\n  item.json.quiz = parsed;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1904,
+        -32
+      ],
+      "id": "f5731037-ea67-42e9-8207-9704b71064bd",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n  const quiz = item.json.quiz;\n\n  let message = `📚 Quiz: ${quiz.topic}\\n\\n`;\n\n  quiz.questions.forEach((q, index) => {\n    message += `❓ Question ${index + 1}\\n`;\n    message += `${q.question}\\n\\n`;\n    message += `A. ${q.options.A}\\n`;\n    message += `B. ${q.options.B}\\n`;\n    message += `C. ${q.options.C}\\n`;\n    message += `D. ${q.options.D}\\n\\n`;\n  });\n\n  message += `✍️ Reply with format A, B, C, D, B`;\n\n  item.json.telegram_text = message;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        -32
+      ],
+      "id": "3bdac419-ed66-474a-a04b-4ff5b694b0fa",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Select rows from a table').item.json.chat_id }}",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2320,
+        -32
+      ],
+      "id": "37ae6b57-42c1-4d26-9b62-49ed85dce600",
+      "name": "Send a text message1",
+      "webhookId": "777df121-6ae8-4a9b-8c23-bbab98544cec",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "quizzes",
+          "mode": "list",
+          "cachedResultName": "quizzes"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "id",
+              "value": "={{ $('Select rows from a table').item.json.current_quiz_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        944,
+        640
+      ],
+      "id": "18f02fb9-4307-4c61-a8ca-2ae26f6829ad",
+      "name": "Select rows from a table1",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $('Telegram Trigger').all();\n\nfor (const item of items) {\n  const raw = item.json.message.text;\n\n  const answers = raw\n    .split(',')\n    .map(a => a.trim().toUpperCase());\n\n  item.json.answers = answers;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        640
+      ],
+      "id": "f92c6cdd-4a62-4588-8d4d-efdba89ef9a6",
+      "name": "Code2"
+    },
+    {
+      "parameters": {
+        "jsCode": "let quiz = $('Select rows from a table1').first().json.quiz_data;\n\nif (typeof quiz === 'string') {\n  quiz = JSON.parse(quiz);\n}\n\nconst answers = $input.first().json.answers || [];\n\nlet score = 0;\nlet resultText = `📊 Hasil Quiz\\n\\n`;\n\nquiz.questions.forEach((q, i) => {\n  const userAnswer = answers[i] || \"-\";\n  const correct = q.answer === userAnswer;\n\n  if (correct) score++;\n\n  resultText += `❓ Q${i + 1}\\n`;\n  resultText += `Jawaban kamu: ${userAnswer}\\n`;\n  resultText += `Jawaban benar: ${q.answer}\\n`;\n  resultText += `${correct ? \"✅ Benar\" : \"❌ Salah\"}\\n`;\n  resultText += `💡 ${q.explanation}\\n\\n`;\n});\n\nconst total = quiz.questions.length || 1;\nconst percentage = Math.round((score / total) * 100);\n\nresultText += `🎯 Skor: ${score}/${total} (${percentage}%) \\nApakah anda ingin melakukan quiz kembali`;\n\nreturn [{\n  json: {\n    telegram_text: resultText,\n    score: percentage\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        640
+      ],
+      "id": "8f9bff83-1615-4e0a-a45a-7882bbd140e6",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Select rows from a table').item.json.chat_id }}",
+        "text": "={{ $json.telegram_text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        640
+      ],
+      "id": "97747f92-7a40-4b7c-83a2-12e5740f17ae",
+      "name": "Send a text message2",
+      "webhookId": "679aea0e-109f-46e7-975f-d557f60c75b5",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Select rows from a table').item.json.id }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "score",
+              "value": "={{ $('Code3').item.json.score }}"
+            },
+            {
+              "column": "state",
+              "value": "QUIZ_FINISHED"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1776,
+        640
+      ],
+      "id": "328a55e3-c78f-41e9-886e-baefa3e92c9d",
+      "name": "Insert or update rows in a table1",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Send a text message2').item.json.result.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2016,
+        640
+      ],
+      "id": "df92c896-e9e5-4006-85a1-76eb0cab9a18",
+      "name": "Insert rows in a table2",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "user"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        704,
+        640
+      ],
+      "id": "7956fc44-ef47-4c28-96ea-1cf48ee4db79",
+      "name": "Insert rows in a table3",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "user"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        688,
+        928
+      ],
+      "id": "2bc944b6-feed-4429-9ea4-1eb9c821fb17",
+      "name": "Insert rows in a table4",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=state:  {{ $('Switch').item.json.state }}\nmessage: {{ $('Telegram Trigger').item.json.message.text }}",
+        "options": {
+          "systemMessage": "You are an AI assistant that detects user intent after a quiz is finished.\n\nThe user has completed a quiz, and now sends a message.\n\nYour task is to classify the user's message into one of the following intents:\n\n1. RESTART_QUIZ\n- The user wants to take another quiz\n- Examples:\n  - \"yes\"\n  - \"lagi\"\n  - \"mau lagi\"\n  - \"another quiz\"\n  - \"start again\"\n  - \"gas lagi\"\n\n2. STOP\n- The user does not want to continue\n- Examples:\n  - \"no\"\n  - \"tidak\"\n  - \"cukup\"\n  - \"stop\"\n  - \"udah\"\n\n3. UNKNOWN\n- The message is unclear, irrelevant, or not related to continuing the quiz\n- Examples:\n  - random text\n  - questions unrelated to quiz\n  - empty or confusing input\n\nOutput format (STRICT JSON):\n{\n  \"intent\": \"RESTART_QUIZ | STOP | UNKNOWN\",\n  \"message\": \"short response to user\"\n}\n\nRules:\n- Do NOT include text outside JSON\n- Keep the message short and natural\n- If intent is UNKNOWN, ask the user clearly if they want to take another quiz\n- Be tolerant of informal language, typos, and mixed language (Indonesian + English)"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        928
+      ],
+      "id": "f372c56e-80c5-4533-84bf-e14462b93c1a",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        896,
+        1120
+      ],
+      "id": "62a77968-3e40-4932-a1cb-5b90835a8d43",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Z7RRwWJdesgLiWAu",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nfor (const item of items) {\n  let raw = item.json.output; // hasil dari AI\n\n  const cleaned = raw\n    .replace(/```json/g, '')\n    .replace(/```/g, '')\n    .trim();\n\n  const parsed = JSON.parse(cleaned);\n\n  item.json.intent = parsed.intent;\n  item.json.reply_message = parsed.message;\n}\n\nreturn items;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        928
+      ],
+      "id": "a4727313-5383-4b16-844e-3df9b6521819",
+      "name": "Code4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "STOP",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "8c867a0d-8c1c-4003-b8af-4818f0e57dd3"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "324f8671-6595-4bdc-ab1e-8d00710736e3",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "RESTART_QUIZ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b7ad7f86-321a-4079-9f72-ae136569ee2f",
+                    "leftValue": "={{ $json.intent }}",
+                    "rightValue": "UNKNOWN",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        912
+      ],
+      "id": "091a7efd-648e-405b-a98b-20420f847e8f",
+      "name": "Switch1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Select rows from a table').item.json.chat_id }}",
+        "text": "={{ $json.reply_message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        896
+      ],
+      "id": "0fc60f86-2f9a-46dc-aa64-a25d2a7d58bf",
+      "name": "Send a text message3",
+      "webhookId": "1a13b4b2-9cec-4c8a-a7a0-ff8a10471721",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Select rows from a table').item.json.chat_id }}",
+        "text": "={{ $json.reply_message }} Silahkan memasukkan topic yang anda inginkan!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        1088
+      ],
+      "id": "c6cf7ed0-7e13-4f13-97ef-29f3bc1ccb51",
+      "name": "Send a text message4",
+      "webhookId": "1a13b4b2-9cec-4c8a-a7a0-ff8a10471721",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Select rows from a table').item.json.chat_id }}",
+        "text": "={{ $json.reply_message }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1792,
+        1280
+      ],
+      "id": "7c18f271-010b-4d76-872b-ef64c165eb5b",
+      "name": "Send a text message5",
+      "webhookId": "1a13b4b2-9cec-4c8a-a7a0-ff8a10471721",
+      "credentials": {
+        "telegramApi": {
+          "id": "SECzBZJdPR8OFUeu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "table": {
+          "__rl": true,
+          "value": "users",
+          "mode": "list",
+          "cachedResultName": "users"
+        },
+        "dataMode": "defineBelow",
+        "columnToMatchOn": "id",
+        "valueToMatchOn": "={{ $('Select rows from a table').item.json.id }}",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "state",
+              "value": "WAITING_TOPIC"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1984,
+        1088
+      ],
+      "id": "fbad4a26-6fc0-4333-8f64-bece086759c2",
+      "name": "Insert or update rows in a table2",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2000,
+        896
+      ],
+      "id": "acbf3ccf-12c3-459a-8bfb-d1d9faf54938",
+      "name": "Insert rows in a table6",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2192,
+        1088
+      ],
+      "id": "36e6685a-986e-4ef4-840b-6ec84fd34993",
+      "name": "Insert rows in a table7",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1984,
+        1280
+      ],
+      "id": "5732701a-d99c-4550-89e4-931e87bdf201",
+      "name": "Insert rows in a table8",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "user"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        688,
+        -32
+      ],
+      "id": "cef2a509-a8c4-4376-98f3-d61f2d5bc2f2",
+      "name": "Insert rows in a table5",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        2512,
+        -32
+      ],
+      "id": "67fa975f-7907-403d-b117-3e0380280f52",
+      "name": "Insert rows in a table9",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "table": {
+          "__rl": true,
+          "value": "messages",
+          "mode": "list",
+          "cachedResultName": "messages"
+        },
+        "dataMode": "defineBelow",
+        "valuesToSend": {
+          "values": [
+            {
+              "column": "user_id",
+              "value": "={{ $('Select rows from a table').item.json.id }}"
+            },
+            {
+              "column": "role",
+              "value": "assistant"
+            },
+            {
+              "column": "message",
+              "value": "={{ $('Telegram Trigger').item.json.message.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.5,
+      "position": [
+        1152,
+        352
+      ],
+      "id": "4b61cd50-b372-4bdd-8619-6ff9b7e92bad",
+      "name": "Insert rows in a table10",
+      "credentials": {
+        "mySql": {
+          "id": "RgzwqNJotn1fIObP",
+          "name": "MySQL account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $input.first().json.output;\n\nconst cleaned = raw\n  .replace(/```json/g, '')\n  .replace(/```/g, '')\n  .trim();\n\nlet quiz = JSON.parse(cleaned);\n\nconst quizString = JSON.stringify(quiz);\n\nreturn [{\n  json: {\n    topic: quiz.topic,\n    quiz_data: quizString\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -32
+      ],
+      "id": "9b056509-e2b8-473b-875f-7a3a8b82dd1b",
+      "name": "Code5"
+    },
+    {
+      "parameters": {
+        "content": "### First Flow for Newbie \nThis flow will save the data about the user.\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1424,
+        352
+      ],
+      "id": "f275c26e-824d-4a58-93c5-d7a5efb6fdfe",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "### Second Flow for Generating Questions \nThis flow will take an action with generating the questions regarding    \n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2736,
+        -48
+      ],
+      "id": "493685f4-005b-458e-afd2-0f0eb547bc20",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "### Third Flow for Checking the Answers \nIn this phase the all answers will be matched with the right answers saved in database.    \n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2304,
+        624
+      ],
+      "id": "fb473022-6f48-44ad-9f8f-7205d02c12ba",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "### Last Flow for User Response  \nThe user will be responded based on their willingness to continue the quiz or not.\n"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2496,
+        1040
+      ],
+      "id": "54bcd4e3-7ddd-4863-aa9b-c7f2233a25cf",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {
+    "AI Agent": [
+      {
+        "json": {
+          "output": "{\n  \"topic\": \"Property market Malang 2025\",\n  \"questions\": [\n    {\n      \"question\": \"Faktor utama apa yang diproyeksikan akan paling signifikan mendorong pertumbuhan pasar properti di Malang pada tahun 2025?\",\n      \"options\": {\n        \"A\": \"Stagnasi harga properti residensial karena kelebihan pasokan.\",\n        \"B\": \"Peningkatan permintaan properti komersial akibat tumbuhnya sektor pariwisata dan ekonomi kreatif.\",\n        \"C\": \"Lonjakan investasi di properti industri seiring ekspansi pabrik-pabrik besar.\",\n        \"D\": \"Pertumbuhan properti residensial dan komersial didorong oleh pengembangan infrastruktur seperti jalan tol dan konektivitas.\"\n      },\n      \"answer\": \"D\",\n      \"explanation\": \"Pengembangan infrastruktur, terutama jalan tol yang menghubungkan Malang dengan kota-kota besar lainnya, akan sangat meningkatkan aksesibilitas dan menarik investasi, baik di sektor residensial maupun komersial, menjadikannya faktor pendorong utama.\",\n      \"difficulty\": \"easy\"\n    },\n    {\n      \"question\": \"Segmen properti mana yang diperkirakan akan menunjukkan permintaan paling stabil dan menjanjikan di Malang hingga tahun 2025, mengingat karakternya sebagai kota pendidikan dan pariwisata?\",\n      \"options\": {\n        \"A\": \"Perkantoran Grade A di pusat kota.\",\n        \"B\": \"Properti vertikal (apartemen dan kost eksklusif) dekat kampus dan pusat kota.\",\n        \"C\": \"Gudang logistik berukuran besar di pinggir kota.\",\n        \"D\": \"Pusat perbelanjaan baru berkonsep lifestyle.\"\n      },\n      \"answer\": \"B\",\n      \"explanation\": \"Sebagai kota pelajar dengan banyak universitas dan pusat kota yang terus berkembang, permintaan akan hunian vertikal seperti apartemen dan kost eksklusif akan tetap tinggi, didorong oleh mahasiswa, profesional muda, dan mobilitas penduduk.\",\n      \"difficulty\": \"medium\"\n    },\n    {\n      \"question\": \"Salah satu tantangan terbesar yang mungkin dihadapi pasar properti Malang pada tahun 2025 adalah:\",\n      \"options\": {\n        \"A\": \"Kelangkaan lahan yang drastis sehingga menghentikan pembangunan.\",\n        \"B\": \"Fluktuasi suku bunga acuan dan daya beli konsumen yang melambat.\",\n        \"C\": \"Penurunan minat investor asing karena ketidakpastian regulasi.\",\n        \"D\": \"Persaingan ketat dari kota-kota tetangga seperti Batu dan Surabaya.\"\n      },\n      \"answer\": \"B\",\n      \"explanation\": \"Suku bunga acuan yang tinggi dapat meningkatkan biaya KPR dan pinjaman konstruksi, sementara perlambatan daya beli konsumen dapat mengurangi kemampuan masyarakat untuk membeli properti, menjadi tantangan fundamental bagi pasar.\",\n      \"difficulty\": \"medium\"\n    },\n    {\n      \"question\": \"Tren properti baru apa yang diproyeksikan akan semakin relevan dan tumbuh di Malang pada tahun 2025, khususnya di kalangan milenial dan Gen Z?\",\n      \"options\": {\n        \"A\": \"Dominasi properti 'green building' sebagai standar baru.\",\n        \"B\": \"Peningkatan adopsi teknologi smart home dan co-living spaces di hunian modern.\",\n        \"C\": \"Migrasi besar-besaran penduduk ke pinggir kota untuk mencari lahan murah.\",\n        \"D\": \"Kebangkitan kembali permintaan ruko konvensional sebagai pusat bisnis utama.\"\n      },\n      \"answer\": \"B\",\n      \"explanation\": \"Generasi milenial dan Gen Z cenderung mencari hunian yang terintegrasi teknologi dan menawarkan konsep sharing economy seperti co-living, yang sesuai dengan gaya hidup mereka dan optimal untuk kota dengan populasi muda seperti Malang.\",\n      \"difficulty\": \"medium\"\n    },\n    {\n      \"question\": \"Kebijakan pemerintah daerah atau pusat yang paling berpotensi mempengaruhi pasar properti Malang secara signifikan hingga tahun 2025 adalah:\",\n      \"options\": {\n        \"A\": \"Pelonggaran aturan kepemilikan properti untuk warga negara asing secara signifikan.\",\n        \"B\": \"Intensifikasi pembangunan hunian subsidi MBR (Masyarakat Berpenghasilan Rendah) oleh pemerintah.\",\n        \"C\": \"Pemberlakuan pajak properti yang sangat tinggi untuk properti kosong.\",\n        \"D\": \"Larangan pembangunan properti vertikal di area pusat kota.\"\n      },\n      \"answer\": \"B\",\n      \"explanation\": \"Program pemerintah untuk menyediakan hunian bagi Masyarakat Berpenghasilan Rendah (MBR) akan terus menjadi fokus dan dapat mengubah dinamika pasar, khususnya di segmen residensial yang paling terjangkau, mempengaruhi pasokan dan permintaan secara luas.\",\n      \"difficulty\": \"hard\"\n    }\n  ]\n}"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table1": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message2": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table1": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table3": {
+      "main": [
+        [
+          {
+            "node": "Select rows from a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message4": {
+      "main": [
+        [
+          {
+            "node": "Insert or update rows in a table2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert or update rows in a table2": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message3": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message5": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert rows in a table5": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code5": {
+      "main": [
+        [
+          {
+            "node": "Insert rows in a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d3f2b59f-13ba-4ff0-a982-237d3e4812dd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3ff5db7fd488cb11cf7386229b3374a7f2e31ab8ff1f6bd645bb83b3f09fd677"
+  },
+  "id": "M3TlvORhDO2Y2qxC",
+  "tags": []
+}
